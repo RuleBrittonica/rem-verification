@@ -1,2 +1,11 @@
 [programs]
-aeneas = ""
+aeneas = "/home/matt/rem-matt/rem-verification/programs/aeneas"
+
+[coq]
+original = "/home/matt/rem-matt/rem-verification/coq/SampleProject.v"
+refactored = "/home/matt/rem-matt/rem-verification/coq/SampleProjectRef.v"
+primitives = "/home/matt/rem-matt/rem-verification/coq/Primitives.v"
+
+[llbc]
+original = "/home/matt/rem-matt/rem-verification/llbc/sample_project.llbc"
+refactored = "/home/matt/rem-matt/rem-verification/llbc/sample_project_ref.llbc"
