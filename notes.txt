@@ -1,0 +1,26 @@
+The goal here is to allow for an automated verification process.
+
+I think that the main controller will provide the LLBC from CHARON initially +
+at the end of the refactoring process. This is because we need the whole crate
+to produce the LLBC, and also the whole crate to do the refactoring.
+
+From there this verfication crate will take in the two LLBC files. It will then
+convert them to CoQ / F# / LEAN / whichever works. This will be used to perform
+the verification.
+
+To start with on this I need:
+- A CLI that I can interface with using the two LLBC files
+- And also provide options to what verification I want to run
+- Fuzzing
+- Program analysis
+- ETC
+
+
+Separately:
+- Update rem-cli to produce the LLBC at the start and end
+- Have a pipeline in rem-cli to take Path to the crate:
+    - Create the LLBC
+    - Run REM-extract
+    - Create the New LLBC
+    - Pass both LLBCs to REM-verfication
+    - Go from there!
