@@ -251,7 +251,7 @@ Definition scalar_div {ty} (x y: scalar ty) : result (scalar ty) :=
   mk_scalar ty (to_Z x / to_Z y).
 
 Definition scalar_rem {ty} (x y: scalar ty) : result (scalar ty) := mk_scalar ty (Z.rem (to_Z x) (to_Z y)).
-  
+
 Definition scalar_neg {ty} (x: scalar ty) : result (scalar ty) := mk_scalar ty (-(to_Z x)).
 
 Axiom scalar_xor : forall {ty}, scalar ty -> scalar ty -> scalar ty. (* TODO *)
