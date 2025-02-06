@@ -15,6 +15,9 @@ To start with on this I need:
 - Program analysis
 - ETC
 
+The first stage of the CLI is to take the the path to the two .LLBC files, and
+create us two coq (.v) files. The Primitives.v file needs to be pasted into the
+same directory as the .v files.
 
 Separately:
 - Update rem-cli to produce the LLBC at the start and end
