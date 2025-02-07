@@ -9,7 +9,7 @@ convert them to CoQ / F# / LEAN / whichever works. This will be used to perform
 the verification.
 
 To start with on this I need:
-- A CLI that I can interface with using the two LLBC files
+- A CLI that I can interface with using the two LLBC files - Done!
 - And also provide options to what verification I want to run
 - Fuzzing
 - Program analysis

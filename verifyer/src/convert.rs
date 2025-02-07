@@ -26,12 +26,13 @@ use crate::local_config::Settings;
 /// Top level (public) method to convert the two LLBC files to CoQ files. Also
 /// ensures that we have a Primitives.v file in the same directory.
 /// The output directory is optional, and if not provided, the files will be
-/// saved to the same directory as the original LLBC file.
+/// saved to the same directory as the original LLBC file. The function returns
+/// the paths to the new CoQ files
 pub fn coq_conversion(
     original_llbc: PathBuf,
     refactored_llbc: PathBuf,
     out_dir: Option<PathBuf>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(PathBuf, PathBuf), Box<dyn std::error::Error>> {
     let settings: Settings = get_config()?;
     let aeneas_path: PathBuf = get_aeneas_path(&settings);
     let primitives_path: PathBuf = get_primitives_path(&settings);
@@ -46,20 +47,21 @@ pub fn coq_conversion(
     create_primitives_file(primitives_save_path)?;
 
     // Convert the LLBC files to CoQ
-    convert_llbc_to_coq(&aeneas_path, &original_llbc, out_dir.clone())?;
-    convert_llbc_to_coq(&aeneas_path, &refactored_llbc, out_dir.clone())?;
-    Ok(())
+    let original_coq_path = convert_llbc_to_coq(&aeneas_path, &original_llbc, out_dir.clone())?;
+    let refactored_coq_path = convert_llbc_to_coq(&aeneas_path, &refactored_llbc, out_dir.clone())?;
+    Ok((original_coq_path, refactored_coq_path))
 }
 
 /// Converts a LLBC file to a CoQ file using AENEAS.
 /// Will call AENEAS as a subprocess and handle errors accordingly
 /// AENEAS is called as follows:
 /// ./<path_to_aeneas> -backend coq <"path_to_llbc"> -dest <"path_to_output">
+/// Returns the path to the new CoQ file.
 fn convert_llbc_to_coq(
     aeneas_path: &PathBuf,
     llbc_path: &PathBuf,
     out_dir: Option<PathBuf>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let output_dir: PathBuf = out_dir.unwrap_or_else(|| {
         llbc_path
             .parent()
@@ -78,7 +80,13 @@ fn convert_llbc_to_coq(
     if !output.status.success() {
         return Err(Box::new(AENEASError::RuntimeError));
     }
-    Ok(())
+
+    let returned_path: PathBuf = output_dir
+        .join(llbc_path
+            .file_stem()
+            .unwrap()
+        );
+    Ok(returned_path)
 }
 
 /// Creates the Primitives.v file if needed.
@@ -105,6 +113,12 @@ fn get_primitives_path(settings: &Settings) -> PathBuf {
     let primitives_str:&String  = &settings.programs.primitives;
     PathBuf::from(primitives_str)
 }
+
+///============================================================================
+/// ------------------------------ Fstar Conversion ---------------------------
+/// ===========================================================================
+
+
 
 /// ============================================================================
 /// ------------------------------ MISC ----------------------------------------

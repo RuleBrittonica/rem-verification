@@ -18,8 +18,12 @@ use args::{
 mod error;
 mod logging;
 mod messages;
+
 mod convert;
 use convert::coq_conversion;
+
+mod verify;
+use verify::coq_verification;
 
 mod local_config;
 use crate::local_config::Settings;
@@ -53,7 +57,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             verbose,
             top_level_function,
         } => {
-            todo!()
+            // First we need to convert the files!
+            let (original_coq, refactored_coq) = coq_conversion(
+                original_llbc.clone(),
+                refactored_llbc.clone(),
+                out_dir.clone()
+            )?;
+
+            info!("LLBC to CoQ conversion completed successfully.");
+
+            // Now we can run the verification.
+            let success = coq_verification(
+                original_coq.clone(),
+                refactored_coq.clone(),
+                top_level_function.clone()
+            )?;
+
+            Ok(())
         },
 
         CLICommands::Verify {
@@ -62,7 +82,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             verbose,
             top_level_function,
         } => {
-            todo!()
+            let success = coq_verification(
+                original_coq.clone(),
+                refactored_coq.clone(),
+                top_level_function.clone()
+            )?;
+
+            if success {
+                info!("Verification successful!");
+            } else {
+                info!("Verification failed!");
+            }
+
+            Ok(())
         },
 
         CLICommands::Convert {
@@ -80,7 +112,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             // Call the conversion function.
             // Clone the paths because they are borrowed from the CLIArgs.
-            coq_conversion(
+            let _ = coq_conversion(
                 original_llbc.clone(),
                 refactored_llbc.clone(),
                 out_dir.clone()
