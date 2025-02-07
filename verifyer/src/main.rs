@@ -79,8 +79,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         CLICommands::Verify {
             original_coq,
             refactored_coq,
-            verbose,
             top_level_function,
+            verbose,
         } => {
             let success = coq_verification(
                 original_coq.clone(),

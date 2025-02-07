@@ -24,11 +24,11 @@ Lemma ref_incr_equiv : forall (x : i32),
 Proof.
   intros x.
   unfold SampleProject.ref_incr.
-  unfold SampleProjectRef.ref_incr, SampleProjectRef.fun_name.
+  unfold SampleProjectRef.ref_incr.
   reflexivity.
 Qed.
 
-(* Goal True.
+Goal True.
   idtac "Proofs succeeded!".
   exact I.
-Qed. *)
+Qed.

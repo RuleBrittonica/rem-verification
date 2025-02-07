@@ -8,5 +8,6 @@ clap = { version = "4.5.18", features = ["derive"] }
 config = "0.15.7"
 flexi_logger = "0.29.8"
 log = "0.4.25"
+regex = "1.11.1"
 rem-utils = "0.1.5"
 serde = { version = "1.0.217", features = ["derive", "serde_derive"] }

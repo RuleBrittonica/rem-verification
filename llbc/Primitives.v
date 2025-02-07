@@ -7,7 +7,7 @@ Require Import Coq.ZArith.Znat.
 Require Import List.
 Import ListNotations.
 
-Module Primitives.
+(* Module Primitives. *)
 
   (* TODO: use more *)
 Declare Scope Primitives_scope.
@@ -1050,4 +1050,4 @@ Axiom alloc_vec_Vec_index_mut_eq : forall {a : Type} (v : alloc_vec_Vec a) (i : 
   alloc_vec_Vec_index_mut (core_slice_index_SliceIndexUsizeSliceTInst a) v i =
     alloc_vec_Vec_index_mut_usize v i.
 
-End Primitives.
+(* End Primitives. *)

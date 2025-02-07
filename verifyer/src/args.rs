@@ -20,14 +20,14 @@ pub enum CLICommands {
     /// Run the whole process. Converts the LLBC files to CoQ, then
     /// runs verification checks on the CoQ files.
     Run {
-        #[arg(help = "Top Level Function Name")]
-        top_level_function: String,
-
         #[arg(help = "Path to the LLBC of the original program.")]
         original_llbc: PathBuf,
 
         #[arg(help = "Path to the LLBC of the refactored program.")]
         refactored_llbc: PathBuf,
+
+        #[arg(help = "Top Level Function Name")]
+        top_level_function: String,
 
         /// Optional output directory for the generated `.v` files
         #[arg(short, long, help = "Output directory for generated Coq files")]
@@ -39,14 +39,14 @@ pub enum CLICommands {
 
     /// Run various verification checks on the CoQ files.
     Verify {
-        #[arg(help = "Top Level Function Name")]
-        top_level_function: String,
-
         #[arg(help = "Path to the CoQ of the original program.")]
         original_coq: PathBuf,
 
         #[arg(help = "Path to the CoQ of the refactored program.")]
         refactored_coq: PathBuf,
+
+        #[arg(help = "Top Level Function Name")]
+        top_level_function: String,
 
         #[arg(short, long, help = "Enable verbose output", action = ArgAction::SetTrue)]
         verbose: bool,

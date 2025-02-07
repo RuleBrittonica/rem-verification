@@ -27,3 +27,20 @@ Separately:
     - Create the New LLBC
     - Pass both LLBCs to REM-verfication
     - Go from there!
+
+Getting Automated CoQ Running!
+    - Create a _CoQProject File
+    - Ensure it contains all of the required information about the directory
+        - - R . AutoEquiv
+        - Primitives.v
+        - <OriginalFile>.v
+        - <RefactoredFile>.v
+        - EquivCheck.v (Which we need to autogenerate)
+    - Run coqc on the files
+    - coqc Primitives.v && coqc SampleProject.v && coqc SampleProjectRef.v && coqc EquivCheck.v
+    - check the result of coqc EquivCheck.v to understand if we have the same
+    functions!
+
+Separately, Cleanup the target directory!
+    - Remove *.glob *.vo *.vok *.vos *.aux *.lia.cache
+    - rm -f *.glob *.vo *.vok *.vos *.aux .*.aux .*.cache

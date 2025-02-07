@@ -1,4 +1,4 @@
--R . EquivTest
+-R . AutoEquiv
 
 Primitives.v
 SampleProject.v

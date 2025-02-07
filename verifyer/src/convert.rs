@@ -35,7 +35,7 @@ pub fn coq_conversion(
 ) -> Result<(PathBuf, PathBuf), Box<dyn std::error::Error>> {
     let settings: Settings = get_config()?;
     let aeneas_path: PathBuf = get_aeneas_path(&settings);
-    let primitives_path: PathBuf = get_primitives_path(&settings);
+    let _primitives_path: PathBuf = get_primitives_path(&settings);
 
     // Check if the Primitives.v file exists in the directory
     let primitives_save_path: PathBuf = out_dir.clone().unwrap_or_else(|| {

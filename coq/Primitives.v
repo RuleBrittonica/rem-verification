@@ -7,7 +7,7 @@ Require Import Coq.ZArith.Znat.
 Require Import List.
 Import ListNotations.
 
-Module Primitives.
+(* Module Primitives. *)
 
   (* TODO: use more *)
 Declare Scope Primitives_scope.
@@ -251,7 +251,7 @@ Definition scalar_div {ty} (x y: scalar ty) : result (scalar ty) :=
   mk_scalar ty (to_Z x / to_Z y).
 
 Definition scalar_rem {ty} (x y: scalar ty) : result (scalar ty) := mk_scalar ty (Z.rem (to_Z x) (to_Z y)).
-  
+
 Definition scalar_neg {ty} (x: scalar ty) : result (scalar ty) := mk_scalar ty (-(to_Z x)).
 
 Axiom scalar_xor : forall {ty}, scalar ty -> scalar ty -> scalar ty. (* TODO *)
@@ -1050,4 +1050,4 @@ Axiom alloc_vec_Vec_index_mut_eq : forall {a : Type} (v : alloc_vec_Vec a) (i : 
   alloc_vec_Vec_index_mut (core_slice_index_SliceIndexUsizeSliceTInst a) v i =
     alloc_vec_Vec_index_mut_usize v i.
 
-End Primitives.
+(* End Primitives. *)
