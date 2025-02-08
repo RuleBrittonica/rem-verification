@@ -8,7 +8,10 @@ use std::{
 
 use regex::Regex;
 
-use log::info;
+use log::{
+    info,
+    error,
+};
 
 pub fn coq_verification(
     original_coq: PathBuf,
@@ -205,43 +208,77 @@ Qed.",
 /// will return false.
 /// The function will return true if all files compile successfully, and it has
 /// checked the return value of the EquivCheck.v file.
+/// Verifies the CoQ files using CoQ's coqc command.
+/// This function will call coqc on the original and refactored CoQ files,
+/// as well as the EquivCheck.v file. If any of the files fail to compile,
+/// the function will return false. The function will return true if all
+/// files compile successfully.
 fn verify_coq_files(
     original_coq: PathBuf,
     refactored_coq: PathBuf,
     equiv_check: PathBuf,
-    dir: &PathBuf,
+    dir: &PathBuf, // This should be the directory that contains Primitives.v.
 ) -> Result<bool, Box<dyn std::error::Error>> {
+    // The mapping: -R <dir> Primitives
+    let dir_str = dir.to_str().ok_or("Invalid directory path")?;
+
     // Start with the Primitives.v file
     let primitives = dir.join("Primitives.v");
     let primitives_coq_output = Command::new("coqc")
-        .arg(primitives)
+        .arg("-R")
+        .arg(dir_str)
+        .arg("Primitives")
+        .arg(&primitives)
         .output()?;
     if !primitives_coq_output.status.success() {
+        let stdout = String::from_utf8_lossy(&primitives_coq_output.stdout);
+        let stderr = String::from_utf8_lossy(&primitives_coq_output.stderr);
+        error!("Primitives.v failed to compile:\nstdout: {}\nstderr: {}", stdout, stderr);
         return Ok(false);
     }
     info!("Primitives.v compiled successfully");
 
-    // Call coqc on the files
+    // Compile the original Coq file with the same mapping
     let original_coq_output = Command::new("coqc")
-        .arg(original_coq)
+        .arg("-R")
+        .arg(dir_str)
+        .arg("Primitives")
+        .arg(&original_coq)
         .output()?;
     if !original_coq_output.status.success() {
+        let stdout = String::from_utf8_lossy(&original_coq_output.stdout);
+        let stderr = String::from_utf8_lossy(&original_coq_output.stderr);
+        error!("Original Coq file failed to compile:\nstdout: {}\nstderr: {}", stdout, stderr);
         return Ok(false);
     }
-    info!("Original CoQ file compiled successfully");
+    info!("Original Coq file compiled successfully");
 
+    // Compile the refactored Coq file
     let refactored_coq_output = Command::new("coqc")
-        .arg(refactored_coq)
+        .arg("-R")
+        .arg(dir_str)
+        .arg("Primitives")
+        .arg(&refactored_coq)
         .output()?;
     if !refactored_coq_output.status.success() {
+        let stdout = String::from_utf8_lossy(&refactored_coq_output.stdout);
+        let stderr = String::from_utf8_lossy(&refactored_coq_output.stderr);
+        error!("Refactored Coq file failed to compile:\nstdout: {}\nstderr: {}", stdout, stderr);
         return Ok(false);
     }
-    info!("Refactored CoQ file compiled successfully");
+    info!("Refactored Coq file compiled successfully");
 
+    // Compile the EquivCheck.v file
     let equiv_check_output = Command::new("coqc")
-        .arg(equiv_check.clone())
+        .arg("-R")
+        .arg(dir_str)
+        .arg("Primitives")
+        .arg(&equiv_check)
         .output()?;
     if !equiv_check_output.status.success() {
+        let stdout = String::from_utf8_lossy(&equiv_check_output.stdout);
+        let stderr = String::from_utf8_lossy(&equiv_check_output.stderr);
+        error!("EquivCheck.v failed to compile:\nstdout: {}\nstderr: {}", stdout, stderr);
         return Ok(false);
     }
     info!("EquivCheck.v compiled successfully");
