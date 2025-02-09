@@ -29,9 +29,9 @@ use crate::local_config::Settings;
 /// saved to the same directory as the original LLBC file. The function returns
 /// the paths to the new CoQ files
 pub fn coq_conversion(
-    original_llbc: PathBuf,
-    refactored_llbc: PathBuf,
-    out_dir: Option<PathBuf>,
+    original_llbc: &PathBuf,
+    refactored_llbc: &PathBuf,
+    out_dir: &Option<PathBuf>,
 ) -> Result<(PathBuf, PathBuf), Box<dyn std::error::Error>> {
     let settings: Settings = get_config()?;
     let aeneas_path: PathBuf = get_aeneas_path(&settings);
@@ -47,8 +47,8 @@ pub fn coq_conversion(
     create_primitives_file(primitives_save_path)?;
 
     // Convert the LLBC files to CoQ
-    let original_coq_path = convert_llbc_to_coq(&aeneas_path, &original_llbc, out_dir.clone())?;
-    let refactored_coq_path = convert_llbc_to_coq(&aeneas_path, &refactored_llbc, out_dir.clone())?;
+    let original_coq_path: PathBuf = convert_llbc_to_coq(&aeneas_path, &original_llbc, out_dir.clone())?;
+    let refactored_coq_path: PathBuf = convert_llbc_to_coq(&aeneas_path, &refactored_llbc, out_dir.clone())?;
     Ok((original_coq_path, refactored_coq_path))
 }
 

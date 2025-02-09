@@ -1,6 +1,0 @@
--R . AutoEquiv
-
-Primitives.v
-SampleProject.v
-SampleProjectRef.v
-EquivCheck.v

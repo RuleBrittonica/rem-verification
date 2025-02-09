@@ -25,7 +25,7 @@ use convert::coq_conversion;
 mod verify;
 use verify::coq_verification;
 
-mod local_config;
+pub mod local_config;
 use crate::local_config::Settings;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -59,18 +59,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         } => {
             // First we need to convert the files!
             let (original_coq, refactored_coq) = coq_conversion(
-                original_llbc.clone(),
-                refactored_llbc.clone(),
-                out_dir.clone()
+                &original_llbc,
+                &refactored_llbc,
+                &out_dir
             )?;
 
             info!("LLBC to CoQ conversion completed successfully.");
 
             // Now we can run the verification.
             let success = coq_verification(
-                original_coq.clone(),
-                refactored_coq.clone(),
-                top_level_function.clone()
+                &original_coq,
+                &refactored_coq,
+                &top_level_function
             )?;
 
             Ok(())
@@ -82,17 +82,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             top_level_function,
             verbose,
         } => {
-            let success = coq_verification(
-                original_coq.clone(),
-                refactored_coq.clone(),
-                top_level_function.clone()
+            let paths: (std::path::PathBuf, std::path::PathBuf, std::path::PathBuf, bool) = coq_verification(
+                &original_coq,
+                &refactored_coq,
+                &top_level_function,
             )?;
-
-            if success {
-                info!("Verification successful!");
-            } else {
-                info!("Verification failed!");
-            }
 
             Ok(())
         },
@@ -112,10 +106,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             // Call the conversion function.
             // Clone the paths because they are borrowed from the CLIArgs.
-            let _ = coq_conversion(
-                original_llbc.clone(),
-                refactored_llbc.clone(),
-                out_dir.clone()
+            let coq_converstion_res: (std::path::PathBuf, std::path::PathBuf) = coq_conversion(
+                &original_llbc,
+                &refactored_llbc,
+                &out_dir,
             )?;
 
             info!("LLBC to Coq conversion completed successfully.");
@@ -125,7 +119,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         CLICommands::Test {
             verbose
         } => {
-            todo!()
+            todo!("Implement the test command.");
         },
     }
 }

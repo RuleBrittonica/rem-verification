@@ -3,7 +3,6 @@ use std::{
     fs::File,
     io::Write as ioWrite,
     process::Command,
-    fmt::Write as fmtWrite,
 };
 
 use regex::Regex;
@@ -13,51 +12,68 @@ use log::{
     error,
 };
 
+/// Returns the paths to:
+/// - The _CoQProject file
+/// - The EquivCheck.v file
+/// - The Primitives.v file
+/// These are used to ensure the files are deleted at the end of the
+/// verification process.
 pub fn coq_verification(
-    original_coq: PathBuf,
-    refactored_coq: PathBuf,
-    top_level_function: String,
-) -> Result<bool, Box<dyn std::error::Error>> {
+    original_coq: &PathBuf,
+    refactored_coq: &PathBuf,
+    top_level_function: &String,
+) -> Result<(PathBuf, PathBuf, PathBuf, bool), Box<dyn std::error::Error>> {
     let dir: PathBuf = original_coq.parent().unwrap().to_path_buf(); // The directory where the CoQ files are saved
 
     // First we need to create the _CoqProject file
-    let _ = create_coq_project_file(
-        original_coq.clone(),
-        refactored_coq.clone(),
+    let coq_path: PathBuf = create_coq_project_file(
+        &original_coq,
+        &refactored_coq,
         &dir,
     )?;
 
     // Create the EquivCheck.v file
-    let equiv_check = create_equiv_check_file(
-        original_coq.clone(),
-        refactored_coq.clone(),
-        top_level_function,
+    let equiv_check: PathBuf = create_equiv_check_file(
+        &original_coq,
+        &refactored_coq,
+        &top_level_function,
         &dir
     )?;
 
     // Now we need to call CoQ to verify the files
-    let result = verify_coq_files(
-        original_coq.clone(),
-        refactored_coq.clone(),
-        equiv_check,
+    let (result, primitives) = verify_coq_files(
+        &original_coq,
+        &refactored_coq,
+        &equiv_check,
         &dir,
     )?;
+
+    if result {
+        info!("CoQ verification completed successfully");
+    } else {
+        error!("CoQ verification failed");
+    }
 
     // Finally cleanup the directory (remove all files other than the CoQ files
     // and the _CoQ project file)
     cleanup_directory(&dir)?;
 
-    Ok(result)
+    Ok((
+        coq_path,
+        equiv_check,
+        primitives,
+        result
+    ))
 }
 
 /// Creates the _CoqProject file for the CoQ project. This file is used by coqc
 /// to understand the project structure and dependencies, and helps with
 /// compilation.
 fn create_coq_project_file(
-    original_coq: PathBuf,
-    refactored_coq: PathBuf,
+    original_coq: &PathBuf,
+    refactored_coq: &PathBuf,
     dir: &PathBuf,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
     // The _CoqProject is a text file that contains:
     // -R . AutoEquiv
     // Primitives.v
@@ -75,7 +91,9 @@ fn create_coq_project_file(
     writeln!(coq_project, "{}", refactored_coq.file_name().unwrap().to_str().unwrap())?;
     writeln!(coq_project, "EquivCheck.v")?;
 
-    Ok(())
+    // Return the path to the _CoqProject file
+    let coq_path = dir.join("_CoqProject");
+    Ok(coq_path)
 }
 
 /// Creates the EquivCheck.v file for the CoQ project. This is the most involved
@@ -83,9 +101,9 @@ fn create_coq_project_file(
 /// can check the equivalence of two functions.
 /// The script will be saved in the same directory as the original CoQ file.
 fn create_equiv_check_file(
-    original_coq: PathBuf,
-    refactored_coq: PathBuf,
-    top_level_function: String,
+    original_coq: &PathBuf,
+    refactored_coq: &PathBuf,
+    top_level_function: &String,
     dir: &PathBuf,
 ) -> Result<PathBuf, Box<dyn std::error::Error>> {
     // The EquivCheck.v file will contain the following:
@@ -213,17 +231,18 @@ Qed.",
 /// as well as the EquivCheck.v file. If any of the files fail to compile,
 /// the function will return false. The function will return true if all
 /// files compile successfully.
+/// Returns the result of the equivalence check and the path to the Primitives.v file.
 fn verify_coq_files(
-    original_coq: PathBuf,
-    refactored_coq: PathBuf,
-    equiv_check: PathBuf,
+    original_coq: &PathBuf,
+    refactored_coq: &PathBuf,
+    equiv_check: &PathBuf,
     dir: &PathBuf, // This should be the directory that contains Primitives.v.
-) -> Result<bool, Box<dyn std::error::Error>> {
+) -> Result<(bool, PathBuf), Box<dyn std::error::Error>> {
     // The mapping: -R <dir> Primitives
     let dir_str = dir.to_str().ok_or("Invalid directory path")?;
 
     // Start with the Primitives.v file
-    let primitives = dir.join("Primitives.v");
+    let primitives: PathBuf = dir.join("Primitives.v");
     let primitives_coq_output = Command::new("coqc")
         .arg("-R")
         .arg(dir_str)
@@ -234,7 +253,7 @@ fn verify_coq_files(
         let stdout = String::from_utf8_lossy(&primitives_coq_output.stdout);
         let stderr = String::from_utf8_lossy(&primitives_coq_output.stderr);
         error!("Primitives.v failed to compile:\nstdout: {}\nstderr: {}", stdout, stderr);
-        return Ok(false);
+        return Ok((false, primitives));
     }
     info!("Primitives.v compiled successfully");
 
@@ -249,7 +268,7 @@ fn verify_coq_files(
         let stdout = String::from_utf8_lossy(&original_coq_output.stdout);
         let stderr = String::from_utf8_lossy(&original_coq_output.stderr);
         error!("Original Coq file failed to compile:\nstdout: {}\nstderr: {}", stdout, stderr);
-        return Ok(false);
+        return Ok((false, primitives));
     }
     info!("Original Coq file compiled successfully");
 
@@ -264,7 +283,7 @@ fn verify_coq_files(
         let stdout = String::from_utf8_lossy(&refactored_coq_output.stdout);
         let stderr = String::from_utf8_lossy(&refactored_coq_output.stderr);
         error!("Refactored Coq file failed to compile:\nstdout: {}\nstderr: {}", stdout, stderr);
-        return Ok(false);
+        return Ok((false, primitives));
     }
     info!("Refactored Coq file compiled successfully");
 
@@ -279,11 +298,11 @@ fn verify_coq_files(
         let stdout = String::from_utf8_lossy(&equiv_check_output.stdout);
         let stderr = String::from_utf8_lossy(&equiv_check_output.stderr);
         error!("EquivCheck.v failed to compile:\nstdout: {}\nstderr: {}", stdout, stderr);
-        return Ok(false);
+        return Ok((false, primitives));
     }
     info!("EquivCheck.v compiled successfully");
 
-    Ok(true)
+    Ok((true, primitives))
 }
 
 /// Cleans up the directory by removing all files other than the CoQ files and
