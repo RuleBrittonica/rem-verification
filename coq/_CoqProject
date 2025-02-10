@@ -1,0 +1,6 @@
+-R . AutoEquiv
+
+Primitives.v
+Main.v
+MainRef.v
+EquivCheck.v

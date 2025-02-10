@@ -13,7 +13,7 @@ use std::{
     path::PathBuf,
     process::Command,
 };
-use log::info;
+use log::{info, warn};
 
 // Local Modules
 use crate::error::AENEASError; // TODO implement specific error handling for this module.
@@ -36,6 +36,10 @@ pub fn coq_conversion(
     let settings: Settings = get_config()?;
     let aeneas_path: PathBuf = get_aeneas_path(&settings);
     let _primitives_path: PathBuf = get_primitives_path(&settings);
+
+    info!("Converting LLBC files to CoQ files");
+    info!("Settings: {:?}", settings);
+    info!("AENEAS path: {:?}", aeneas_path);
 
     // Check if the Primitives.v file exists in the directory
     let primitives_save_path: PathBuf = out_dir.clone().unwrap_or_else(|| {
@@ -69,6 +73,8 @@ fn convert_llbc_to_coq(
             .unwrap_or_else(|| llbc_path.clone())
     });
 
+    info!("Output directory: {:?}", output_dir);
+
     // Call AENEAS
     let output = Command::new(aeneas_path)
         .arg("-backend")
@@ -78,6 +84,12 @@ fn convert_llbc_to_coq(
         .arg(output_dir.clone())
         .output()?;
     if !output.status.success() {
+        // Log the stderr and stdout from the process
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        warn!("AENEAS failed to convert the LLBC file to CoQ");
+        warn!("Stderr: {}", stderr);
+        warn!("Stdout: {}", stdout);
         return Err(Box::new(AENEASError::RuntimeError));
     }
 
