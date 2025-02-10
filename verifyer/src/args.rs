@@ -35,6 +35,9 @@ pub enum CLICommands {
 
         #[arg(short, long, help = "Enable verbose output", action = ArgAction::SetTrue)]
         verbose: bool,
+
+        #[arg(short, long, help = "Cleanup all files other than .llbc", action= ArgAction::SetTrue)]
+        cleanup: bool,
     },
 
     /// Run various verification checks on the CoQ files.

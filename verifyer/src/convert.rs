@@ -93,11 +93,17 @@ fn convert_llbc_to_coq(
         return Err(Box::new(AENEASError::RuntimeError));
     }
 
-    let returned_path: PathBuf = output_dir
-        .join(llbc_path
-            .file_stem()
-            .unwrap()
-        );
+    // Convert the path from a llbc path to a CoQ path.
+    // This involves changing the extension to .v
+    // and converting the filname from (for example) `main_ref` to MainRef
+    let file_stem = llbc_path
+        .file_stem()
+        .ok_or(AENEASError::InvalidPathConversion)?
+        .to_str()
+        .unwrap();
+    let coq_file_name = convert_llbc_to_coq_filename(file_stem);
+    let mut returned_path = output_dir.join(coq_file_name);
+    returned_path.set_extension("v");
     Ok(returned_path)
 }
 
@@ -148,4 +154,20 @@ fn get_config() -> Result<Settings, Box<dyn std::error::Error>> {
 fn get_aeneas_path(settings: &Settings) -> PathBuf {
     let aeneas_str:&String  = &settings.programs.aeneas;
     PathBuf::from(aeneas_str)
+}
+
+/// Convert a file stem from the llbc form (e.g. "main_ref")
+/// to the Coq form (e.g. "MainRef").
+fn convert_llbc_to_coq_filename(file_stem: &str) -> String {
+    file_stem
+        .split('_')
+        .map(|s| {
+            let mut chars = s.chars();
+            // Capitalize the first letter and append the rest
+            match chars.next() {
+                None => String::new(),
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        })
+        .collect::<String>()
 }

@@ -56,6 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             out_dir,
             verbose,
             top_level_function,
+            cleanup,
         } => {
             // First we need to convert the files!
             let (original_coq, refactored_coq) = coq_conversion(
@@ -67,11 +68,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             info!("LLBC to CoQ conversion completed successfully.");
 
             // Now we can run the verification.
-            let success = coq_verification(
+            let (coq_project, equivcheck, primitives, success) = coq_verification(
                 &original_coq,
                 &refactored_coq,
                 &top_level_function
             )?;
+
+            if success {
+                info!("Verification completed successfully.");
+            } else {
+                info!("Verification failed.");
+            }
+
+            if *cleanup {
+                // Cleanup the files
+                std::fs::remove_file(&original_coq)?;
+                std::fs::remove_file(&refactored_coq)?;
+                std::fs::remove_file(&coq_project)?;
+                std::fs::remove_file(&equivcheck)?;
+                std::fs::remove_file(&primitives)?;
+            }
 
             Ok(())
         },
