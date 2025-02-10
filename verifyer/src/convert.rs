@@ -128,7 +128,7 @@ fn create_primitives_file(
 }
 
 fn get_primitives_path(settings: &Settings) -> PathBuf {
-    let primitives_str:&String  = &settings.programs.primitives;
+    let primitives_str:&String  = &settings.files.primitives;
     PathBuf::from(primitives_str)
 }
 

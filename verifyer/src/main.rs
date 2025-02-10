@@ -42,11 +42,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // log the settings
     let s: Settings = config.try_deserialize()?;
     info!("AENEAS path: {}", s.programs.aeneas);
-    info!("Primitives.v path: {}", s.programs.primitives);
-    info!("Original Coq path: {}", s.coq.original);
-    info!("Refactored Coq path: {}", s.coq.refactored);
-    info!("Original LLBC path: {}", s.llbc.original);
-    info!("Refactored LLBC path: {}", s.llbc.refactored);
+    info!("CHARON path: {}", s.programs.charon);
+    info!("Primitives path: {}", s.files.primitives);
 
     let args: CLIArgs = CLIArgs::parse();
     match &args.command {
@@ -87,6 +84,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 std::fs::remove_file(&coq_project)?;
                 std::fs::remove_file(&equivcheck)?;
                 std::fs::remove_file(&primitives)?;
+            }
+
+            eprintln!("COQ_PROJECT: {}", coq_project.display());
+            eprintln!("EQUIVCHECK: {}", equivcheck.display());
+            eprintln!("PRIMITIVES: {}", primitives.display());
+            eprintln!("SUCCESS: {}", success);
+            eprintln!("OUTPUT_END");
+
+            // If successful, exit with 0. Otherwise, exit with 1.
+            if success {
+                std::process::exit(0);
+            } else {
+                std::process::exit(1);
             }
 
             Ok(())
