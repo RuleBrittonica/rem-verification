@@ -11,7 +11,8 @@ use std::{
 use regex::Regex;
 
 use log::{
-    debug, error, info
+    error, 
+    info
 };
 
 /// Returns the paths to:
