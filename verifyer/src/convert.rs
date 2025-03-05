@@ -3,10 +3,6 @@
 //! also supported by AENEAS.
 //! I will need to experiment with verification to see what is most useful
 
-use config::{
-    Config,
-    File as CfgFile,
-};
 use std::{
     fs::File as StdFile, // Rename the File struct to stdFile to avoid conflicts
     io::Write,
@@ -15,9 +11,10 @@ use std::{
 };
 use log::{info, warn};
 
+use rem_utils::resolve_aeneas_path;
+
 // Local Modules
 use crate::error::AENEASError; // TODO implement specific error handling for this module.
-use crate::local_config::Settings;
 
 ///============================================================================
 ///------------------------------- CoQ Conversion -----------------------------
@@ -32,14 +29,13 @@ pub fn coq_conversion(
     original_llbc: &PathBuf,
     refactored_llbc: &PathBuf,
     out_dir: &Option<PathBuf>,
+    aeneas_path: &Option<PathBuf>,
 ) -> Result<(PathBuf, PathBuf), Box<dyn std::error::Error>> {
-    let settings: Settings = get_config()?;
-    let aeneas_path: PathBuf = get_aeneas_path(&settings);
-    let _primitives_path: PathBuf = get_primitives_path(&settings);
 
     info!("Converting LLBC files to CoQ files");
-    info!("Settings: {:?}", settings);
-    info!("AENEAS path: {:?}", aeneas_path);
+
+    // Get the path to the AENEAS binary
+    let aeneas_path: PathBuf = resolve_aeneas_path(aeneas_path)?;
 
     // Check if the Primitives.v file exists in the directory
     let primitives_save_path: PathBuf = out_dir.clone().unwrap_or_else(|| {
@@ -127,11 +123,6 @@ fn create_primitives_file(
     Ok(())
 }
 
-fn get_primitives_path(settings: &Settings) -> PathBuf {
-    let primitives_str:&String  = &settings.files.primitives;
-    PathBuf::from(primitives_str)
-}
-
 ///============================================================================
 /// ------------------------------ Fstar Conversion ---------------------------
 /// ===========================================================================
@@ -141,20 +132,6 @@ fn get_primitives_path(settings: &Settings) -> PathBuf {
 /// ============================================================================
 /// ------------------------------ MISC ----------------------------------------
 /// ============================================================================
-
-fn get_config() -> Result<Settings, Box<dyn std::error::Error>> {
-    let config: Config = Config::builder()
-        .add_source(CfgFile::with_name("Config")
-        .required(true))
-        .build()?;
-    let s: Settings = config.try_deserialize()?;
-    Ok(s)
-}
-
-fn get_aeneas_path(settings: &Settings) -> PathBuf {
-    let aeneas_str:&String  = &settings.programs.aeneas;
-    PathBuf::from(aeneas_str)
-}
 
 /// Convert a file stem from the llbc form (e.g. "main_ref")
 /// to the Coq form (e.g. "MainRef").
